@@ -270,4 +270,22 @@ def main():
         config['files']['log_file'] = args.log_file
     if args.log_level:
         config['logging']['level'] = args.log_level
-    if args.model
+    if args.model_name:
+        config['model']['name'] = args.model_name
+    if args.temperature is not None:
+        config['model']['temperature'] = args.temperature
+    if args.max_tokens is not None:
+        config['model']['max_tokens'] = args.max_tokens
+
+    # Setup logging
+    setup_logging(
+        log_level=config['logging'].get('level', 'INFO'),
+        log_format=config['logging'].get('format', '%(asctime)s - %(name)s - %(levelname)s - %(message)s'),
+        log_file=config['files'].get('log_file')
+    )
+
+    logging.info("Model Comparison App Started.")
+    process_inputs(config)
+
+if __name__ == "__main__":
+    main()
