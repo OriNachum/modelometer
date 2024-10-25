@@ -1,0 +1,21 @@
+# config.yaml
+
+api:
+  endpoint: "http://localhost:11434/v1/completions"  # Default Ollama API endpoint
+  # Add authentication if required
+  # headers:
+  #   Authorization: "Bearer YOUR_API_KEY"
+
+model:
+  name: "gpt-4"  # Default model name
+  temperature: 0.7
+  max_tokens: 150
+
+files:
+  input_csv: "input.csv"
+  output_csv: "output.csv"
+  log_file: "app.log"
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
