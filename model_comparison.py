@@ -41,14 +41,15 @@ def setup_logging(log_level, log_format, log_file=None):
                         handlers=handlers)
 
 # ----------------------------
-# API Interaction
+# API Interaction with Streaming
 # ----------------------------
 
-def send_request(api_endpoint, headers, payload):
+def send_streaming_request(api_endpoint, headers, payload):
     try:
-        response = requests.post(api_endpoint, headers=headers, json=payload)
-        response.raise_for_status()
-        return response.json()
+        with requests.post(api_endpoint, headers=headers, json=payload, stream=True) as response:
+            response.raise_for_status()
+            for line in response.iter_lines():
+                yield line
     except requests.exceptions.RequestException as e:
         logging.error(f"API request failed: {e}")
         return None
@@ -58,14 +59,13 @@ def send_request(api_endpoint, headers, payload):
 # ----------------------------
 
 def count_tokens(text):
-    # A simple token count based on whitespace separation.
-    # For more accurate token counting, use OpenAI's tiktoken or similar.
     return len(text.split())
 
 # ----------------------------
 # Main Processing Function
 # ----------------------------
 
+# Main Processing Function with Defensive Coding and Event Filtering
 def process_inputs(config):
     input_path = Path(config['files']['input_csv'])
     output_path = Path(config['files']['output_csv'])
@@ -84,13 +84,14 @@ def process_inputs(config):
                 'question',
                 'response',
                 'processing_time_sec',
+                'time_to_first_token',
                 'tokens_used',
                 'tokens_per_second'
             ])
 
     # Read input CSV using pandas for efficiency
     try:
-        df = pd.read_csv(input_path)
+        df = pd.read_csv(input_path, skipinitialspace=True)
     except Exception as e:
         logging.error(f"Failed to read input CSV: {e}")
         sys.exit(1)
@@ -109,13 +110,26 @@ def process_inputs(config):
         question = row['question']
         logging.info(f"Processing row {index + 1}: {question}")
 
-        # Prepare payload
-        payload = {
-            "prompt": f"{system_prompt}\n{question}",
-            "model": config['model']['name'],
-            "temperature": config['model']['temperature'],
-            "max_tokens": config['model']['max_tokens']
-        }
+        # Choose between chat and completion payload based on config
+        if config['model'].get('type', 'chat') == 'chat':
+            payload = {
+                "model": config['model']['name'],
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": question}
+                ],
+                "temperature": config['model']['temperature'],
+                "max_tokens": config['model']['max_tokens'],
+                "stream": True
+            }
+        else:
+            payload = {
+                "prompt": f"{system_prompt}\n{question}",
+                "model": config['model']['name'],
+                "temperature": config['model']['temperature'],
+                "max_tokens": config['model']['max_tokens'],
+                "stream": True
+            }
 
         headers = {}
         if 'headers' in config['api']:
@@ -123,22 +137,25 @@ def process_inputs(config):
 
         # Start timing
         start_time = time.time()
-        response = send_request(config['api']['endpoint'], headers, payload)
+        time_to_first_token = None
+        response_text = ""
+
+        # Process the streamed response to capture time-to-first-token
+        for line in send_streaming_request(config['api']['endpoint'], headers, payload):
+            if line:  # Only process non-empty lines
+                # Record time to first token
+                if time_to_first_token is None:
+                    time_to_first_token = time.time() - start_time
+
+                # Accumulate response text for final token counting
+                line_content = line.decode('utf-8').strip()
+                if line_content:  # Ensure we only add meaningful content
+                    response_text += line_content
+
         end_time = time.time()
-
-        if response is None:
-            logging.error(f"Skipping row {index + 1} due to API failure.")
-            continue
-
         processing_time = end_time - start_time
 
-        # Extract response text
-        response_text = ""
-        if 'choices' in response and len(response['choices']) > 0:
-            response_text = response['choices'][0].get('text', '').strip()
-        else:
-            logging.warning(f"No 'choices' in API response for row {index + 1}.")
-
+        # Calculate tokens and performance metrics
         tokens_used = count_tokens(response_text)
         tokens_per_second = tokens_used / processing_time if processing_time > 0 else 0
 
@@ -152,11 +169,18 @@ def process_inputs(config):
                 question,
                 response_text,
                 f"{processing_time:.4f}",
+                f"{time_to_first_token:.4f}" if time_to_first_token is not None else "N/A",
                 tokens_used,
                 f"{tokens_per_second:.2f}"
             ])
 
-        logging.info(f"Row {index + 1} processed in {processing_time:.2f}s, Tokens/Sec: {tokens_per_second:.2f}")
+        # Construct the log message
+        time_to_first_token_str = f"{time_to_first_token:.4f}s" if time_to_first_token is not None else "N/A"
+        log_message = (
+            f"Row {index + 1} processed in {processing_time:.2f}s, "
+            f"Time to First Token: {time_to_first_token_str}, Tokens/Sec: {tokens_per_second:.2f}"
+        )
+        logging.info(log_message)
 
         # Update statistics
         total_requests += 1
