@@ -9,6 +9,7 @@ import pandas as pd
 import requests
 import yaml
 import matplotlib.pyplot as plt
+import psutil  # New library for CPU usage monitoring
 
 # ----------------------------
 # Configuration Management
@@ -71,22 +72,28 @@ def analyze_model_performance(data, model_name, first_time_token):
     logging.info(f"Summary Statistics:\n{summary}")
 
     # Create plots for analysis
-    plt.figure(figsize=(15, 8))
+    plt.figure(figsize=(20, 8))
 
     # Boxplot for Tokens per Second
-    plt.subplot(1, 3, 1)
+    plt.subplot(1, 4, 1)
     plt.boxplot(df['tokens_per_second'], vert=False)
     plt.title('Tokens Per Second Distribution')
     plt.xlabel('Tokens Per Second')
 
     # Boxplot for Time to First Token
-    plt.subplot(1, 3, 2)
+    plt.subplot(1, 4, 2)
     plt.boxplot(df['time_to_first_token'], vert=False)
     plt.title('Time to First Token Distribution')
     plt.xlabel('Time to First Token (sec)')
 
-    # Add summary statistics as text on the third subplot
-    plt.subplot(1, 3, 3)
+    # Boxplot for CPU Usage
+    plt.subplot(1, 4, 3)
+    plt.boxplot(df['cpu_usage'], vert=False)
+    plt.title('CPU Usage Distribution')
+    plt.xlabel('CPU Usage (%)')
+
+    # Add summary statistics as text on the fourth subplot
+    plt.subplot(1, 4, 4)
     plt.axis('off')
     text = f"Summary Statistics\n\n{summary}\n\nFirst Time Run - Time to First Token: {first_time_token:.4f} sec"
     plt.text(0.5, 0.5, text, ha='center', va='center', fontsize=10)
@@ -121,7 +128,8 @@ def process_inputs(config):
                 'processing_time_sec',
                 'time_to_first_token',
                 'tokens_used',
-                'tokens_per_second'
+                'tokens_per_second',
+                'cpu_usage'  # New field for CPU usage
             ])
 
     # Read input CSV using pandas for efficiency
@@ -173,8 +181,9 @@ def process_inputs(config):
         if 'headers' in config['api']:
             headers.update(config['api']['headers'])
 
-        # Start timing
+        # Start timing and capture initial CPU usage
         start_time = time.time()
+        start_cpu = psutil.cpu_percent(interval=None)  # Capture initial CPU usage
         time_to_first_token = None
         response_text = ""
 
@@ -190,8 +199,11 @@ def process_inputs(config):
                 if line_content:  # Ensure we only add meaningful content
                     response_text += line_content
 
+        # End timing and capture final CPU usage
         end_time = time.time()
         processing_time = end_time - start_time
+        end_cpu = psutil.cpu_percent(interval=None)  # Capture final CPU usage
+        avg_cpu_usage = (start_cpu + end_cpu) / 2  # Calculate average CPU usage for this run
 
         # Set the first run's time to first token and skip recording it in data for analysis
         if first_time_token is None:
@@ -215,7 +227,8 @@ def process_inputs(config):
                 f"{processing_time:.4f}",
                 f"{time_to_first_token:.4f}" if time_to_first_token is not None else "N/A",
                 tokens_used,
-                f"{tokens_per_second:.2f}"
+                f"{tokens_per_second:.2f}",
+                f"{avg_cpu_usage:.2f}"  # Record average CPU usage
             ])
 
         # Update data records for analysis
@@ -223,7 +236,8 @@ def process_inputs(config):
             'processing_time_sec': processing_time,
             'time_to_first_token': time_to_first_token,
             'tokens_used': tokens_used,
-            'tokens_per_second': tokens_per_second
+            'tokens_per_second': tokens_per_second,
+            'cpu_usage': avg_cpu_usage  # Add CPU usage to data records
         })
 
         # Update statistics
