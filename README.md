@@ -18,4 +18,5 @@ A simple command-line application to compare language models using the OpenAI AP
 - Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+source .venv/bin/activate
+```
