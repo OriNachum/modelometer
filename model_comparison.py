@@ -80,6 +80,7 @@ def process_inputs(config):
             writer = csv.writer(csvfile)
             writer.writerow([
                 'timestamp',
+                'model_name',
                 'system_prompt',
                 'question',
                 'response',
@@ -159,12 +160,13 @@ def process_inputs(config):
         tokens_used = count_tokens(response_text)
         tokens_per_second = tokens_used / processing_time if processing_time > 0 else 0
 
-        # Append to output CSV
+        # Append to output CSV, now with model name included
         timestamp = datetime.utcnow().isoformat()
         with open(output_path, 'a', newline='', encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow([
                 timestamp,
+                config['model']['name'],  # Model name added here
                 system_prompt,
                 question,
                 response_text,
