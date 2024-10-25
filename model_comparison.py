@@ -1,5 +1,3 @@
-# model_comparison.py
-
 import argparse
 import csv
 import logging
@@ -7,10 +5,10 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-
 import pandas as pd
 import requests
 import yaml
+import matplotlib.pyplot as plt
 
 # ----------------------------
 # Configuration Management
@@ -62,13 +60,43 @@ def count_tokens(text):
     return len(text.split())
 
 # ----------------------------
+# Performance Analysis Function
+# ----------------------------
+
+def analyze_model_performance(data, model_name):
+    df = pd.DataFrame(data)
+    
+    # Generate summary statistics
+    summary = df.describe()
+    logging.info(f"Summary Statistics:\n{summary}")
+
+    # Create plots for analysis
+    plt.figure(figsize=(10, 6))
+
+    # Boxplot for Tokens per Second
+    plt.subplot(1, 2, 1)
+    plt.boxplot(df['tokens_per_second'], vert=False)
+    plt.title('Tokens Per Second Distribution')
+    plt.xlabel('Tokens Per Second')
+
+    # Boxplot for Time to First Token
+    plt.subplot(1, 2, 2)
+    plt.boxplot(df['time_to_first_token'], vert=False)
+    plt.title('Time to First Token Distribution')
+    plt.xlabel('Time to First Token (sec)')
+
+    plt.tight_layout()
+    plt.savefig(f"{model_name}.output.png")
+    plt.close()
+
+# ----------------------------
 # Main Processing Function
 # ----------------------------
 
-# Main Processing Function with Defensive Coding and Event Filtering
 def process_inputs(config):
     input_path = Path(config['files']['input_csv'])
     output_path = Path(config['files']['output_csv'])
+    model_name = config['model']['name']
 
     if not input_path.exists():
         logging.error(f"Input CSV file does not exist: {input_path}")
@@ -105,6 +133,7 @@ def process_inputs(config):
     total_requests = 0
     total_time = 0
     total_tokens = 0
+    data_records = []  # Collect data for analysis
 
     for index, row in df.iterrows():
         system_prompt = row['system_prompt']
@@ -114,7 +143,7 @@ def process_inputs(config):
         # Choose between chat and completion payload based on config
         if config['model'].get('type', 'chat') == 'chat':
             payload = {
-                "model": config['model']['name'],
+                "model": model_name,
                 "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": question}
@@ -126,7 +155,7 @@ def process_inputs(config):
         else:
             payload = {
                 "prompt": f"{system_prompt}\n{question}",
-                "model": config['model']['name'],
+                "model": model_name,
                 "temperature": config['model']['temperature'],
                 "max_tokens": config['model']['max_tokens'],
                 "stream": True
@@ -160,13 +189,13 @@ def process_inputs(config):
         tokens_used = count_tokens(response_text)
         tokens_per_second = tokens_used / processing_time if processing_time > 0 else 0
 
-        # Append to output CSV, now with model name included
+        # Append to output CSV
         timestamp = datetime.utcnow().isoformat()
         with open(output_path, 'a', newline='', encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow([
                 timestamp,
-                config['model']['name'],  # Model name added here
+                model_name,
                 system_prompt,
                 question,
                 response_text,
@@ -176,18 +205,21 @@ def process_inputs(config):
                 f"{tokens_per_second:.2f}"
             ])
 
-        # Construct the log message
-        time_to_first_token_str = f"{time_to_first_token:.4f}s" if time_to_first_token is not None else "N/A"
-        log_message = (
-            f"Row {index + 1} processed in {processing_time:.2f}s, "
-            f"Time to First Token: {time_to_first_token_str}, Tokens/Sec: {tokens_per_second:.2f}"
-        )
-        logging.info(log_message)
+        # Update data records for analysis
+        data_records.append({
+            'processing_time_sec': processing_time,
+            'time_to_first_token': time_to_first_token,
+            'tokens_used': tokens_used,
+            'tokens_per_second': tokens_per_second
+        })
 
         # Update statistics
         total_requests += 1
         total_time += processing_time
         total_tokens += tokens_used
+
+    # Analyze and plot model performance
+    analyze_model_performance(data_records, model_name)
 
     # Log summary statistics
     if total_requests > 0:
@@ -238,22 +270,4 @@ def main():
         config['files']['log_file'] = args.log_file
     if args.log_level:
         config['logging']['level'] = args.log_level
-    if args.model_name:
-        config['model']['name'] = args.model_name
-    if args.temperature is not None:
-        config['model']['temperature'] = args.temperature
-    if args.max_tokens is not None:
-        config['model']['max_tokens'] = args.max_tokens
-
-    # Setup logging
-    setup_logging(
-        log_level=config['logging'].get('level', 'INFO'),
-        log_format=config['logging'].get('format', '%(asctime)s - %(name)s - %(levelname)s - %(message)s'),
-        log_file=config['files'].get('log_file')
-    )
-
-    logging.info("Model Comparison App Started.")
-    process_inputs(config)
-
-if __name__ == "__main__":
-    main()
+    if args.model
