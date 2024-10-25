@@ -63,7 +63,7 @@ def count_tokens(text):
 # Performance Analysis Function
 # ----------------------------
 
-def analyze_model_performance(data, model_name):
+def analyze_model_performance(data, model_name, first_time_token):
     df = pd.DataFrame(data)
     
     # Generate summary statistics
@@ -71,19 +71,25 @@ def analyze_model_performance(data, model_name):
     logging.info(f"Summary Statistics:\n{summary}")
 
     # Create plots for analysis
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(15, 8))
 
     # Boxplot for Tokens per Second
-    plt.subplot(1, 2, 1)
+    plt.subplot(1, 3, 1)
     plt.boxplot(df['tokens_per_second'], vert=False)
     plt.title('Tokens Per Second Distribution')
     plt.xlabel('Tokens Per Second')
 
     # Boxplot for Time to First Token
-    plt.subplot(1, 2, 2)
+    plt.subplot(1, 3, 2)
     plt.boxplot(df['time_to_first_token'], vert=False)
     plt.title('Time to First Token Distribution')
     plt.xlabel('Time to First Token (sec)')
+
+    # Add summary statistics as text on the third subplot
+    plt.subplot(1, 3, 3)
+    plt.axis('off')
+    text = f"Summary Statistics\n\n{summary}\n\nFirst Time Run - Time to First Token: {first_time_token:.4f} sec"
+    plt.text(0.5, 0.5, text, ha='center', va='center', fontsize=10)
 
     plt.tight_layout()
     plt.savefig(f"{model_name}.output.png")
@@ -135,6 +141,8 @@ def process_inputs(config):
     total_tokens = 0
     data_records = []  # Collect data for analysis
 
+    first_time_token = None  # Variable to store the first time to first token
+
     for index, row in df.iterrows():
         system_prompt = row['system_prompt']
         question = row['question']
@@ -185,6 +193,11 @@ def process_inputs(config):
         end_time = time.time()
         processing_time = end_time - start_time
 
+        # Set the first run's time to first token and skip recording it in data for analysis
+        if first_time_token is None:
+            first_time_token = time_to_first_token
+            continue
+
         # Calculate tokens and performance metrics
         tokens_used = count_tokens(response_text)
         tokens_per_second = tokens_used / processing_time if processing_time > 0 else 0
@@ -218,8 +231,8 @@ def process_inputs(config):
         total_time += processing_time
         total_tokens += tokens_used
 
-    # Analyze and plot model performance
-    analyze_model_performance(data_records, model_name)
+    # Analyze and plot model performance, including first time to token
+    analyze_model_performance(data_records, model_name, first_time_token)
 
     # Log summary statistics
     if total_requests > 0:
