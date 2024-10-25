@@ -1,2 +1,21 @@
-# model-comparison-app
-an app to compare models performance for Raspberry pi
+# Model Comparison App
+
+A simple command-line application to compare language models using the OpenAI API via Ollama. It processes inputs from a CSV file containing system prompts and questions, records processing time and average tokens per second for each response, and appends results to an output CSV file with comprehensive logging.
+
+## Features
+
+- **CSV Input Handling**: Reads `system_prompt` and `question` from an input CSV file.
+- **OpenAI API Integration via Ollama**: Sends requests to the Ollama API.
+- **Performance Metrics Collection**: Measures processing time and calculates tokens per second.
+- **Output Logging**: Appends results to an output CSV file.
+- **Comprehensive Logging**: Logs operations with different levels (INFO, DEBUG, ERROR).
+- **Error Handling**: Gracefully handles errors and continues processing.
+- **Configurability**: Configure via `config.yaml` or command-line arguments.
+
+## Requirements
+
+- Python 3.7 or higher
+- Install dependencies:
+
+```bash
+pip install -r requirements.txt
