@@ -1,13 +1,14 @@
 # config.yaml
 
 api:
-  endpoint: "http://localhost:11434/v1/completions"  # Default Ollama API endpoint
+  #endpoint: "http://localhost:11434/api/generate"  # Default Ollama API endpoint
+  endpoint: "http://localhost:11434/api/chat"  # Default Ollama API endpoint
   # Add authentication if required
   # headers:
   #   Authorization: "Bearer YOUR_API_KEY"
 
 model:
-  name: "gpt-4"  # Default model name
+  name: "granite3-moe:3b"  # Default model name
   temperature: 0.7
   max_tokens: 150
 
