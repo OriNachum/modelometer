@@ -64,40 +64,48 @@ def count_tokens(text):
 # Performance Analysis Function
 # ----------------------------
 
+# ----------------------------
+# Performance Analysis Function
+# ----------------------------
+
 def analyze_model_performance(data, model_name, first_time_token):
+    import matplotlib.pyplot as plt
+    import pandas as pd
+
     df = pd.DataFrame(data)
     
     # Generate summary statistics
     summary = df.describe()
     logging.info(f"Summary Statistics:\n{summary}")
 
-    # Create plots for analysis
-    plt.figure(figsize=(20, 8))
+    # Create a larger figure to accommodate three plots on top and text at the bottom
+    plt.figure(figsize=(12, 10))
 
     # Boxplot for Tokens per Second
-    plt.subplot(1, 4, 1)
+    plt.subplot(2, 3, 1)
     plt.boxplot(df['tokens_per_second'], vert=False)
     plt.title('Tokens Per Second Distribution')
     plt.xlabel('Tokens Per Second')
 
     # Boxplot for Time to First Token
-    plt.subplot(1, 4, 2)
+    plt.subplot(2, 3, 2)
     plt.boxplot(df['time_to_first_token'], vert=False)
     plt.title('Time to First Token Distribution')
     plt.xlabel('Time to First Token (sec)')
 
     # Boxplot for CPU Usage
-    plt.subplot(1, 4, 3)
+    plt.subplot(2, 3, 3)
     plt.boxplot(df['cpu_usage'], vert=False)
     plt.title('CPU Usage Distribution')
     plt.xlabel('CPU Usage (%)')
 
-    # Add summary statistics as text on the fourth subplot
-    plt.subplot(1, 4, 4)
+    # Add summary statistics as text in a separate subplot spanning the bottom row
+    plt.subplot(2, 1, 2)
     plt.axis('off')
     text = f"Summary Statistics\n\n{summary}\n\nFirst Time Run - Time to First Token: {first_time_token:.4f} sec"
-    plt.text(0.5, 0.5, text, ha='center', va='center', fontsize=10)
+    plt.text(0.5, 0.5, text, ha='center', va='center', fontsize=10, wrap=True)
 
+    # Save and close the figure
     plt.tight_layout()
     plt.savefig(f"{model_name}.output.png")
     plt.close()
