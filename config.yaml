@@ -9,7 +9,7 @@ api:
 
 model:
   name: "granite3-moe:3b"  # Default model name
-  temperature: 0.7
+  temperature: 0
   max_tokens: 150
 
 files:
