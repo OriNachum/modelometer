@@ -1,4 +1,4 @@
-# Model Comparison App
+# Model'O'Meter
 
 A simple command-line application to compare language models using the OpenAI API via Ollama. It processes inputs from a CSV file containing system prompts and questions, records processing time and average tokens per second for each response, and appends results to an output CSV file with comprehensive logging.
 
