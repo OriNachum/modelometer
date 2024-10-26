@@ -2,6 +2,10 @@
 
 A simple command-line application to compare language models using the OpenAI API via Ollama. It processes inputs from a CSV file containing system prompts and questions, records processing time and average tokens per second for each response, and appends results to an output CSV file with comprehensive logging.
 
+## Example Output
+![Granite Model Output](granite3-moe-3b.output.png)
+
+
 ## Features
 
 - **CSV Input Handling**: Reads `system_prompt` and `question` from an input CSV file.
