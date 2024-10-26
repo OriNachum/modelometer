@@ -191,12 +191,14 @@ def process_inputs(config):
 
         # Start timing and capture initial CPU usage
         start_time = time.time()
-        start_cpu = psutil.cpu_percent(interval=None)  # Capture initial CPU usage
         time_to_first_token = None
         response_text = ""
+        cpu_samples = []
 
         # Process the streamed response to capture time-to-first-token
         for line in send_streaming_request(config['api']['endpoint'], headers, payload):
+            cpu_samples.append(psutil.cpu_percent(interval=None))
+
             if line:  # Only process non-empty lines
                 # Record time to first token
                 if time_to_first_token is None:
@@ -210,8 +212,9 @@ def process_inputs(config):
         # End timing and capture final CPU usage
         end_time = time.time()
         processing_time = end_time - start_time
-        end_cpu = psutil.cpu_percent(interval=None)  # Capture final CPU usage
-        avg_cpu_usage = (start_cpu + end_cpu) / 2  # Calculate average CPU usage for this run
+
+        # Calculate the average CPU usage during inference
+        avg_cpu_usage = sum(cpu_samples) / len(cpu_samples) if cpu_samples else 0
 
         # Set the first run's time to first token and skip recording it in data for analysis
         if first_time_token is None:
