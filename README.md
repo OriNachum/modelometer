@@ -7,7 +7,7 @@ A simple command-line application to compare language models using the OpenAI AP
 - [ ] Commit model stats 
 
 ## Models coverage
-- [ ] Granite2
+- [x] Granite3 MoE 3B
 - [ ] Gemma 2 2B
 - [ ] Llama3.2 1B
 - [ ] Llama3.2 3B
@@ -32,8 +32,9 @@ A simple command-line application to compare language models using the OpenAI AP
 ## Requirements
 
 - Python 3.7 or higher
-- Install dependencies:
+- Load
+virtual environment and install dependencies:
 
 ```bash
-source .venv/bin/activate
+source init_env.sh
 ```
