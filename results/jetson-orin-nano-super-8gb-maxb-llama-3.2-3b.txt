@@ -1,0 +1,16 @@
+       processing_time_sec  time_to_first_token  ...  tokens_per_second  cpu_usage
+count            29.000000            29.000000  ...          29.000000  29.000000
+mean             11.797432             0.142388  ...          12.284978   4.776010
+std              10.210884             0.011226  ...           3.835514   2.932014
+min               0.288967             0.129879  ...           3.460604   3.387578
+25%               2.452210             0.134670  ...          10.194885   3.761323
+50%               8.654420             0.141510  ...          12.986955   4.035794
+75%              22.337139             0.146504  ...          14.537311   4.561162
+max              31.277411             0.190193  ...          20.195699  19.547475
+
+[8 rows x 5 columns]
+2025-01-01 00:42:46,738 - root - INFO - Processing Complete.
+2025-01-01 00:42:46,739 - root - INFO - Total Requests: 29
+2025-01-01 00:42:46,739 - root - INFO - Average Processing Time: 11.7974 seconds
+2025-01-01 00:42:46,739 - root - INFO - Average Tokens per Second: 14.14
+2025-01-01 00:42:46,739 - root - INFO - Total Tokens Used: 4836
