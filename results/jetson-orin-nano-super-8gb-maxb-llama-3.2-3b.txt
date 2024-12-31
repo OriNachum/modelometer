@@ -1,16 +1,15 @@
-       processing_time_sec  time_to_first_token  ...  tokens_per_second  cpu_usage
-count            29.000000            29.000000  ...          29.000000  29.000000
-mean             11.797432             0.142388  ...          12.284978   4.776010
-std              10.210884             0.011226  ...           3.835514   2.932014
-min               0.288967             0.129879  ...           3.460604   3.387578
-25%               2.452210             0.134670  ...          10.194885   3.761323
-50%               8.654420             0.141510  ...          12.986955   4.035794
-75%              22.337139             0.146504  ...          14.537311   4.561162
-max              31.277411             0.190193  ...          20.195699  19.547475
+       processing_time_sec  time_to_first_token  tokens_used  tokens_per_second  cpu_usage
+count            35.000000            35.000000    35.000000          35.000000  35.000000
+mean             17.635314             0.237919   236.771429          11.485303   7.287351
+std              16.943327             0.258010   231.387895           4.302156   6.587505
+min               0.291958             0.122715     1.000000           0.246932   3.775882
+25%               3.369805             0.137273    26.000000           9.906345   3.975402
+50%              14.272751             0.143883   161.000000          12.999375   4.163973
+75%              25.909542             0.163361   375.500000          14.158222   7.821586
+max              59.500738             1.513044   710.000000          16.642958  31.041860
 
-[8 rows x 5 columns]
-2025-01-01 00:42:46,738 - root - INFO - Processing Complete.
-2025-01-01 00:42:46,739 - root - INFO - Total Requests: 29
-2025-01-01 00:42:46,739 - root - INFO - Average Processing Time: 11.7974 seconds
-2025-01-01 00:42:46,739 - root - INFO - Average Tokens per Second: 14.14
-2025-01-01 00:42:46,739 - root - INFO - Total Tokens Used: 4836
+2025-01-01 01:09:16,411 - root - INFO - Processing Complete.
+2025-01-01 01:09:16,411 - root - INFO - Total Requests: 35
+2025-01-01 01:09:16,411 - root - INFO - Average Processing Time: 17.6353 seconds
+2025-01-01 01:09:16,411 - root - INFO - Average Tokens per Second: 13.43
+2025-01-01 01:09:16,411 - root - INFO - Total Tokens Used: 8287
